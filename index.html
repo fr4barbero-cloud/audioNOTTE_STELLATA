@@ -4,23 +4,123 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Guida Audio - La Notte Stellata</title>
+
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, #0f1f3d, #1d3557);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    main {
+        width: 90%;
+        max-width: 650px;
+        padding: 30px;
+        background: rgba(255,255,255,0.12);
+        border-radius: 24px;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+    }
+
+    p {
+        font-size: 1.2rem;
+        line-height: 1.5;
+    }
+
+    button {
+        width: 100%;
+        max-width: 420px;
+        font-size: 1.35rem;
+        padding: 20px;
+        margin: 12px auto;
+        border: none;
+        border-radius: 16px;
+        cursor: pointer;
+        font-weight: bold;
+        display: block;
+    }
+
+    #avviaBtn {
+        background: #F9C74F;
+        color: #111;
+        font-size: 1.6rem;
+        padding: 24px;
+    }
+
+    .controllo {
+        background: #90BE6D;
+        color: #111;
+    }
+
+    audio {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    #messaggio {
+        margin-top: 15px;
+        color: #F9C74F;
+        font-size: 1.1rem;
+        min-height: 24px;
+    }
+</style>
 </head>
-<body style="font-family: Arial, sans-serif; text-align:center; padding:40px;">
 
-<h1>Guida Audio - La Notte Stellata</h1>
+<body>
 
-<audio id="guidaAudio" controls autoplay>
-    <source src="AUDIOguida-LA NOTTE STELLATA.mp3" type="audio/mpeg">
-    Il tuo browser non supporta l'audio.
-</audio>
+<main>
+    <h1>Guida audio<br>La Notte Stellata</h1>
+
+    <p>Premi il pulsante per avviare la guida.</p>
+
+    <button id="avviaBtn" onclick="avviaGuida()">Avvia guida</button>
+
+    <button class="controllo" onclick="pausaAudio()">Pausa</button>
+    <button class="controllo" onclick="riprendiAudio()">Riprendi</button>
+    <button class="controllo" onclick="tornaInizio()">Torna all'inizio</button>
+
+    <audio id="guidaAudio" controls>
+        <source src="AUDIOguida-LA NOTTE STELLATA.mp3" type="audio/mpeg">
+        Il tuo browser non supporta l'audio.
+    </audio>
+
+    <div id="messaggio"></div>
+</main>
 
 <script>
-window.addEventListener('load', function() {
-    const audio = document.getElementById('guidaAudio');
-    audio.play().catch(() => {
-        console.log('Autoplay bloccato dal browser');
-    });
-});
+const audio = document.getElementById("guidaAudio");
+const messaggio = document.getElementById("messaggio");
+
+function avviaGuida() {
+    audio.currentTime = 0;
+    audio.play();
+    messaggio.textContent = "Guida avviata.";
+}
+
+function pausaAudio() {
+    audio.pause();
+    messaggio.textContent = "Audio in pausa.";
+}
+
+function riprendiAudio() {
+    audio.play();
+    messaggio.textContent = "Audio ripreso.";
+}
+
+function tornaInizio() {
+    audio.currentTime = 0;
+    audio.play();
+    messaggio.textContent = "Audio tornato all'inizio.";
+}
 </script>
 
 </body>
