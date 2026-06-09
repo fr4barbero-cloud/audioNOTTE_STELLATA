@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida Audio - La Notte Stellata</title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align:center; padding:40px;">
+
+<h1>Guida Audio - La Notte Stellata</h1>
+
+<audio id="guidaAudio" controls autoplay>
+    <source src="AUDIOguida-LA NOTTE STELLATA.mp3" type="audio/mpeg">
+    Il tuo browser non supporta l'audio.
+</audio>
+
+<script>
+window.addEventListener('load', function() {
+    const audio = document.getElementById('guidaAudio');
+    audio.play().catch(() => {
+        console.log('Autoplay bloccato dal browser');
+    });
+});
+</script>
+
+</body>
+</html>
