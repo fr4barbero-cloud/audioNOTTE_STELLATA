@@ -20,7 +20,7 @@
 
     main {
         width: 90%;
-        max-width: 680px;
+        max-width: 700px;
         padding: 30px;
         background: rgba(255,255,255,0.12);
         border-radius: 24px;
@@ -38,9 +38,9 @@
 
     button {
         width: 100%;
-        max-width: 440px;
-        font-size: 1.3rem;
-        padding: 18px;
+        max-width: 460px;
+        font-size: 1.35rem;
+        padding: 20px;
         margin: 10px auto;
         border: none;
         border-radius: 16px;
@@ -49,11 +49,16 @@
         display: block;
     }
 
+    button:focus {
+        outline: 5px solid #ffffff;
+        outline-offset: 4px;
+    }
+
     #avviaBtn {
         background: #F9C74F;
         color: #111;
-        font-size: 1.6rem;
-        padding: 25px;
+        font-size: 1.7rem;
+        padding: 28px;
     }
 
     .controllo {
@@ -86,60 +91,130 @@
         border-radius: 16px;
         text-align: left;
     }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
 </style>
 </head>
 
 <body>
 
-<main>
+<main role="main">
+
+    <p class="sr-only" id="istruzioneScreenReader">
+        Guida audio della Notte Stellata.
+        La pagina prova ad avviare automaticamente l'audio.
+        Se l'audio non parte, premi Invio o barra spaziatrice.
+        Il pulsante Avvia guida è già selezionato.
+    </p>
+
     <h1>Guida audio<br>La Notte Stellata</h1>
 
     <p>
-        La guida prova ad avviarsi automaticamente.
-        Puoi usare anche i pulsanti o i comandi vocali.
+        La pagina prova ad avviare subito l'audio.
+        Se il browser lo blocca, premi Invio o barra spaziatrice.
     </p>
 
-    <button id="avviaBtn" onclick="avviaGuida()">Avvia guida</button>
+    <button 
+        id="avviaBtn"
+        onclick="avviaGuida()"
+        aria-describedby="istruzioneScreenReader"
+        accesskey="a"
+        autofocus>
+        Avvia guida
+    </button>
 
     <button class="controllo" onclick="pausaAudio()">Pausa</button>
     <button class="controllo" onclick="riprendiAudio()">Riprendi</button>
     <button class="controllo" onclick="tornaInizio()">Torna all'inizio</button>
 
-    <button class="voce" onclick="attivaComandoVocale()">Comando vocale</button>
+    <button class="voce" onclick="attivaMicrofonoEComandoVocale()">Comando vocale</button>
 
-    <audio id="guidaAudio" controls autoplay>
+    <audio 
+        id="guidaAudio"
+        controls
+        autoplay
+        preload="auto"
+        playsinline>
         <source src="AUDIOguida-LA NOTTE STELLATA.mp3" type="audio/mpeg">
         Il tuo browser non supporta l'audio.
     </audio>
 
-    <div id="messaggio">Apertura della guida in corso...</div>
+    <div id="messaggio" role="status" aria-live="polite">
+        Tentativo di avvio automatico della guida.
+    </div>
 
     <div class="istruzioni">
-        <p><strong>Comandi vocali uguali ai pulsanti:</strong></p>
+        <p><strong>Comandi vocali:</strong></p>
         <p>“Avvia guida”</p>
         <p>“Pausa”</p>
         <p>“Riprendi”</p>
         <p>“Torna all'inizio”</p>
     </div>
+
 </main>
 
 <script>
 const audio = document.getElementById("guidaAudio");
 const messaggio = document.getElementById("messaggio");
+const avviaBtn = document.getElementById("avviaBtn");
 
-function provaAutoplay() {
-    audio.play().then(() => {
-        messaggio.textContent = "Guida avviata automaticamente.";
-    }).catch(() => {
-        messaggio.textContent = "Premi “Avvia guida” per iniziare.";
-    });
+let avvioRiuscito = false;
+
+function tentaAvvioAutomatico() {
+    if (avvioRiuscito) return;
+
+    audio.muted = false;
+    audio.volume = 1;
+
+    const tentativo = audio.play();
+
+    if (tentativo !== undefined) {
+        tentativo.then(() => {
+            avvioRiuscito = true;
+            messaggio.textContent = "Guida avviata automaticamente.";
+        }).catch(() => {
+            messaggio.textContent = "Il browser ha bloccato l'avvio automatico. Premi Invio o barra spaziatrice.";
+            avviaBtn.focus();
+        });
+    }
 }
 
-window.addEventListener("load", provaAutoplay);
+window.addEventListener("DOMContentLoaded", function() {
+    avviaBtn.focus();
+    tentaAvvioAutomatico();
+});
+
+window.addEventListener("load", function() {
+    avviaBtn.focus();
+    tentaAvvioAutomatico();
+
+    setTimeout(tentaAvvioAutomatico, 300);
+    setTimeout(tentaAvvioAutomatico, 800);
+    setTimeout(tentaAvvioAutomatico, 1500);
+});
+
+document.addEventListener("visibilitychange", function() {
+    if (!document.hidden) {
+        tentaAvvioAutomatico();
+    }
+});
 
 function avviaGuida() {
+    audio.muted = false;
+    audio.volume = 1;
     audio.currentTime = 0;
     audio.play();
+    avvioRiuscito = true;
     messaggio.textContent = "Guida avviata.";
 }
 
@@ -159,7 +234,27 @@ function tornaInizio() {
     messaggio.textContent = "Audio tornato all'inizio.";
 }
 
-function attivaComandoVocale() {
+async function attivaMicrofonoEComandoVocale() {
+    messaggio.textContent = "Richiesta di accesso al microfono.";
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        messaggio.textContent = "Il browser non permette l'accesso al microfono da questa pagina.";
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+
+        messaggio.textContent = "Microfono attivato. Ora sto ascoltando.";
+        avviaRiconoscimentoVocale();
+
+    } catch (errore) {
+        messaggio.textContent = "Microfono non autorizzato. Controlla le impostazioni di Chrome.";
+    }
+}
+
+function avviaRiconoscimentoVocale() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
@@ -171,8 +266,6 @@ function attivaComandoVocale() {
     riconoscimento.lang = "it-IT";
     riconoscimento.interimResults = false;
     riconoscimento.maxAlternatives = 1;
-
-    messaggio.textContent = "Sto ascoltando. Di': avvia guida, pausa, riprendi, torna all'inizio.";
 
     riconoscimento.start();
 
@@ -192,21 +285,20 @@ function attivaComandoVocale() {
         }
     };
 
-    riconoscimento.onerror = function() {
-        messaggio.textContent = "Non ho riconosciuto la voce. Premi di nuovo Comando vocale e riprova.";
+    riconoscimento.onerror = function(event) {
+        messaggio.textContent = "Errore comando vocale: " + event.error;
+    };
+
+    riconoscimento.onend = function() {
+        messaggio.textContent += " Premi di nuovo Comando vocale per dare un altro comando.";
     };
 }
 
 document.addEventListener("keydown", function(event) {
-    if (event.code === "Space") {
-        event.preventDefault();
-
-        if (audio.paused) {
-            audio.play();
-            messaggio.textContent = "Audio avviato con la barra spaziatrice.";
-        } else {
-            audio.pause();
-            messaggio.textContent = "Audio messo in pausa con la barra spaziatrice.";
+    if (event.code === "Space" || event.code === "Enter") {
+        if (document.activeElement === avviaBtn) {
+            event.preventDefault();
+            avviaGuida();
         }
     }
 });
