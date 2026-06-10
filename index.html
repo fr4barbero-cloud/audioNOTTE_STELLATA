@@ -20,28 +20,28 @@
 
     main {
         width: 90%;
-        max-width: 650px;
+        max-width: 680px;
         padding: 30px;
         background: rgba(255,255,255,0.12);
         border-radius: 24px;
     }
 
     h1 {
-        font-size: 2.2rem;
+        font-size: 2.1rem;
         margin-bottom: 15px;
     }
 
     p {
-        font-size: 1.2rem;
+        font-size: 1.15rem;
         line-height: 1.5;
     }
 
     button {
         width: 100%;
-        max-width: 420px;
-        font-size: 1.35rem;
-        padding: 20px;
-        margin: 12px auto;
+        max-width: 440px;
+        font-size: 1.3rem;
+        padding: 18px;
+        margin: 10px auto;
         border: none;
         border-radius: 16px;
         cursor: pointer;
@@ -53,12 +53,17 @@
         background: #F9C74F;
         color: #111;
         font-size: 1.6rem;
-        padding: 24px;
+        padding: 25px;
     }
 
     .controllo {
         background: #90BE6D;
         color: #111;
+    }
+
+    .voce {
+        background: #277DA1;
+        color: white;
     }
 
     audio {
@@ -70,7 +75,16 @@
         margin-top: 15px;
         color: #F9C74F;
         font-size: 1.1rem;
-        min-height: 24px;
+        min-height: 28px;
+        font-weight: bold;
+    }
+
+    .istruzioni {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 16px;
+        text-align: left;
     }
 </style>
 </head>
@@ -80,7 +94,10 @@
 <main>
     <h1>Guida audio<br>La Notte Stellata</h1>
 
-    <p>Premi il pulsante per avviare la guida.</p>
+    <p>
+        La guida prova ad avviarsi automaticamente.
+        Puoi usare anche i pulsanti o i comandi vocali.
+    </p>
 
     <button id="avviaBtn" onclick="avviaGuida()">Avvia guida</button>
 
@@ -88,17 +105,37 @@
     <button class="controllo" onclick="riprendiAudio()">Riprendi</button>
     <button class="controllo" onclick="tornaInizio()">Torna all'inizio</button>
 
-    <audio id="guidaAudio" controls>
+    <button class="voce" onclick="attivaComandoVocale()">Comando vocale</button>
+
+    <audio id="guidaAudio" controls autoplay>
         <source src="AUDIOguida-LA NOTTE STELLATA.mp3" type="audio/mpeg">
         Il tuo browser non supporta l'audio.
     </audio>
 
-    <div id="messaggio"></div>
+    <div id="messaggio">Apertura della guida in corso...</div>
+
+    <div class="istruzioni">
+        <p><strong>Comandi vocali uguali ai pulsanti:</strong></p>
+        <p>“Avvia guida”</p>
+        <p>“Pausa”</p>
+        <p>“Riprendi”</p>
+        <p>“Torna all'inizio”</p>
+    </div>
 </main>
 
 <script>
 const audio = document.getElementById("guidaAudio");
 const messaggio = document.getElementById("messaggio");
+
+function provaAutoplay() {
+    audio.play().then(() => {
+        messaggio.textContent = "Guida avviata automaticamente.";
+    }).catch(() => {
+        messaggio.textContent = "Premi “Avvia guida” per iniziare.";
+    });
+}
+
+window.addEventListener("load", provaAutoplay);
 
 function avviaGuida() {
     audio.currentTime = 0;
@@ -121,6 +158,58 @@ function tornaInizio() {
     audio.play();
     messaggio.textContent = "Audio tornato all'inizio.";
 }
+
+function attivaComandoVocale() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        messaggio.textContent = "Questo browser non supporta il comando vocale. Usa Chrome o Edge.";
+        return;
+    }
+
+    const riconoscimento = new SpeechRecognition();
+    riconoscimento.lang = "it-IT";
+    riconoscimento.interimResults = false;
+    riconoscimento.maxAlternatives = 1;
+
+    messaggio.textContent = "Sto ascoltando. Di': avvia guida, pausa, riprendi, torna all'inizio.";
+
+    riconoscimento.start();
+
+    riconoscimento.onresult = function(event) {
+        const comando = event.results[0][0].transcript.toLowerCase().trim();
+
+        if (comando.includes("avvia guida") || comando.includes("avvia")) {
+            avviaGuida();
+        } else if (comando.includes("pausa")) {
+            pausaAudio();
+        } else if (comando.includes("riprendi")) {
+            riprendiAudio();
+        } else if (comando.includes("torna all'inizio") || comando.includes("inizio")) {
+            tornaInizio();
+        } else {
+            messaggio.textContent = "Comando non riconosciuto. Riprova con il nome di un pulsante.";
+        }
+    };
+
+    riconoscimento.onerror = function() {
+        messaggio.textContent = "Non ho riconosciuto la voce. Premi di nuovo Comando vocale e riprova.";
+    };
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.code === "Space") {
+        event.preventDefault();
+
+        if (audio.paused) {
+            audio.play();
+            messaggio.textContent = "Audio avviato con la barra spaziatrice.";
+        } else {
+            audio.pause();
+            messaggio.textContent = "Audio messo in pausa con la barra spaziatrice.";
+        }
+    }
+});
 </script>
 
 </body>
